@@ -31,7 +31,6 @@ editor_init :: proc() -> ^Editor {
 
 editor_draw_rows :: proc(editor: ^Editor, sb: ^strings.Builder) {
 	y: u64
-	strings.builder_reset(sb)
 
 	for y = 0; y < editor.screen_rows; y += 1 {
 
@@ -72,19 +71,18 @@ editor_draw_rows :: proc(editor: ^Editor, sb: ^strings.Builder) {
 	}
 }
 
-process_keypress :: proc(c: byte) -> (should_quit: bool) {
-
-	fmt.printf("c=%d ctrl_q=%d\r\n", c, ctrl_key('q'))
-	if c < 32 || c == 127 {
-		fmt.printf("%d\r\n", c)
-	} else {
-		fmt.printf("%d ('%c')\r\n", c, c)
+move_cursor :: proc(editor: ^Editor, key: Special) {
+	#partial switch key {
+	case .Arrow_Left:
+		if editor.cursorX != 0 do editor.cursorX -= 1
+	case .Arrow_Right:
+		if editor.cursorX != int(editor.screen_cols) - 1 do editor.cursorX += 1
+	case .Arrow_Up:
+		if editor.cursorY != 0 do editor.cursorY -= 1
+	case .Arrow_Down:
+		if editor.cursorY != int(editor.screen_rows) - 1 do editor.cursorY += 1
+	case: // ignore non-arrow specials
 	}
-
-	if c == ctrl_key('q') {
-		return true
-	}
-	return false
 }
 
 refresh_screen :: proc(editor: ^Editor, sb: ^strings.Builder) {
@@ -96,7 +94,8 @@ refresh_screen :: proc(editor: ^Editor, sb: ^strings.Builder) {
 	editor_draw_rows(editor, sb)
 
 	buf: [32]u8
-	fmt.bprintf(buf[:], "\x1b[%d;%dH", editor.cursorX + 1, editor.cursorY + 1)
+	cmd := fmt.bprintf(buf[:], "\x1b[%d;%dH", editor.cursorX + 1, editor.cursorY + 1)
+	strings.write_string(sb, cmd)
 
 	strings.write_string(sb, SHOW_CURSOR)
 
