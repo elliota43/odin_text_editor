@@ -4,6 +4,8 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 
+ODIN_EDITOR_VERSION :: "1.0"
+
 Editor :: struct {
 	screen_rows: u64,
 	screen_cols: u64,
@@ -25,9 +27,40 @@ editor_init :: proc() -> ^Editor {
 
 editor_draw_rows :: proc(editor: ^Editor, sb: ^strings.Builder) {
 	y: u64
+	strings.builder_reset(sb)
 
 	for y = 0; y < editor.screen_rows; y += 1 {
-		strings.write_string(sb, "~")
+
+		if y == editor.screen_rows / 3 {
+			welcome_buf: [80]u8
+
+			welcome := fmt.bprintf(
+				welcome_buf[:],
+				"Odin editor -- version %s",
+				ODIN_EDITOR_VERSION,
+			)
+
+			welcome_len := len(welcome)
+			if welcome_len > int(editor.screen_cols) {
+				welcome_len = int(editor.screen_cols)
+			}
+
+			padding := (int(editor.screen_cols) - welcome_len) / 2
+			if padding > 0 {
+				strings.write_string(sb, "~")
+				padding -= 1
+			}
+
+			for _ in 0 ..< padding {
+				strings.write_string(sb, " ")
+			}
+
+			strings.write_string(sb, welcome[:welcome_len])
+		} else {
+			strings.write_string(sb, "~")
+		}
+
+
 		strings.write_string(sb, ERASE_LINE)
 		if y < editor.screen_rows - 1 {
 			strings.write_string(sb, "\r\n")
@@ -48,4 +81,18 @@ process_keypress :: proc(c: byte) -> (should_quit: bool) {
 		return true
 	}
 	return false
+}
+
+refresh_screen :: proc(editor: ^Editor, sb: ^strings.Builder) {
+	strings.builder_reset(sb)
+
+	strings.write_string(sb, HIDE_CURSOR)
+	strings.write_string(sb, RESET_CURSOR_POSITION)
+
+	editor_draw_rows(editor, sb)
+
+	strings.write_string(sb, RESET_CURSOR_POSITION)
+	strings.write_string(sb, SHOW_CURSOR)
+
+	os.write_string(os.stdout, strings.to_string(sb^))
 }

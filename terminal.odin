@@ -56,19 +56,6 @@ read_key :: proc(buf: []byte) -> (n: int, err: os.Error) {
 	return os.read(os.stdin, buf)
 }
 
-refresh_screen :: proc(editor: ^Editor, sb: ^strings.Builder) {
-	strings.builder_reset(sb)
-
-	strings.write_string(sb, HIDE_CURSOR)
-	strings.write_string(sb, RESET_CURSOR_POSITION)
-
-	editor_draw_rows(editor, sb)
-
-	strings.write_string(sb, RESET_CURSOR_POSITION)
-	strings.write_string(sb, SHOW_CURSOR)
-
-	os.write_string(os.stdout, strings.to_string(sb^))
-}
 
 @(private = "file")
 clear_screen :: proc() {
