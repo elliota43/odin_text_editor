@@ -94,7 +94,7 @@ refresh_screen :: proc(editor: ^Editor, sb: ^strings.Builder) {
 	editor_draw_rows(editor, sb)
 
 	buf: [32]u8
-	cmd := fmt.bprintf(buf[:], "\x1b[%d;%dH", editor.cursorX + 1, editor.cursorY + 1)
+	cmd := fmt.bprintf(buf[:], "\x1b[%d;%dH", editor.cursorY + 1, editor.cursorX + 1)
 	strings.write_string(sb, cmd)
 
 	strings.write_string(sb, SHOW_CURSOR)
