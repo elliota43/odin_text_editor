@@ -1,6 +1,7 @@
 package main
 
 import "core:os"
+import "core:strings"
 
 main :: proc() {
 	enable_raw_mode()
@@ -12,9 +13,10 @@ main :: proc() {
 
 
 	buffer: [1]byte
+	sb := new(strings.Builder)
 
 	for {
-		refresh_screen()
+		refresh_screen(editor, sb)
 		bytes_read, err := read_key(buffer[:])
 		if err == .EAGAIN || bytes_read == 0 do continue
 
