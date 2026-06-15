@@ -8,9 +8,13 @@ main :: proc() {
 	defer disable_raw_mode()
 	defer exit_alt_screen()
 
+	editor := editor_init()
+
+
 	buffer: [1]byte
 
 	for {
+		refresh_screen()
 		bytes_read, err := read_key(buffer[:])
 		if err == .EAGAIN || bytes_read == 0 do continue
 
