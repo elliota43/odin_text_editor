@@ -1,8 +1,6 @@
 package main
 
-import "core:fmt"
 import "core:os"
-
 
 main :: proc() {
 	enable_raw_mode()
@@ -13,24 +11,9 @@ main :: proc() {
 	buffer: [1]byte
 
 	for {
-		bytes_read, err := os.read(os.stdin, buffer[:])
+		bytes_read, err := read_key(buffer[:])
+		if err == .EAGAIN || bytes_read == 0 do continue
 
-
-		// handle timeout
-		if err == .EAGAIN || bytes_read == 0 {
-			continue
-		}
-
-		c := buffer[0]
-
-		if c < 32 || c == 127 {
-			fmt.printf("%d\r\n", c)
-		} else {
-			fmt.printf("%d ('%c')\r\n", c, c)
-		}
-
-		if c == 'q' {
-			break
-		}
+		if process_keypress(buffer[0]) do break
 	}
 }

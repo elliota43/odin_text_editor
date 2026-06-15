@@ -17,6 +17,7 @@ enable_raw_mode :: proc() {
 	psx.atexit(disable_raw_mode)
 
 	raw := orig_mode
+	raw.c_iflag -= {.IXON, .ICRNL, .BRKINT, .INPCK, .ISTRIP}
 	raw.c_lflag -= {.ECHO, .ICANON, .ISIG, .IEXTEN}
 	raw.c_oflag -= {.OPOST}
 
@@ -37,4 +38,8 @@ enter_alt_screen :: proc() {
 
 exit_alt_screen :: proc() {
 	os.write(os.stdout, transmute([]byte)EXIT_ALT_SCREEN)
+}
+
+read_key :: proc(buf: []byte) -> (n: int, err: os.Error) {
+	return os.read(os.stdin, buf)
 }
