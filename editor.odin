@@ -9,6 +9,8 @@ ODIN_EDITOR_VERSION :: "1.0"
 Editor :: struct {
 	screen_rows: u64,
 	screen_cols: u64,
+	cursorX:     int,
+	cursorY:     int,
 }
 
 editor_init :: proc() -> ^Editor {
@@ -21,6 +23,8 @@ editor_init :: proc() -> ^Editor {
 
 	editor.screen_cols = ws_col
 	editor.screen_rows = ws_row
+	editor.cursorX = 0
+	editor.cursorY = 0
 
 	return editor
 }
@@ -91,7 +95,9 @@ refresh_screen :: proc(editor: ^Editor, sb: ^strings.Builder) {
 
 	editor_draw_rows(editor, sb)
 
-	strings.write_string(sb, RESET_CURSOR_POSITION)
+	buf: [32]u8
+	fmt.bprintf(buf[:], "\x1b[%d;%dH", editor.cursorX + 1, editor.cursorY + 1)
+
 	strings.write_string(sb, SHOW_CURSOR)
 
 	os.write_string(os.stdout, strings.to_string(sb^))
